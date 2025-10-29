@@ -251,30 +251,50 @@ The application includes actual clubs from Дворец школьников "Di
 - Environment variables for sensitive data
 
 ## Recent Changes (October 2025)
+
+### Character & Animation Updates
+- **NEW**: Animated human character with 10+ animation states:
+  - Continuous floating motion
+  - Automatic eye blinking
+  - Hair wave animation
+  - Breathing animation (chest movement)
+  - Arm waving when excited
+  - Sparkles and special effects
+  - Thought bubbles when thinking
+  - Pulsing cheeks when happy/excited
+  - Glowing book prop
+  - Natural anatomy with shoulders, elbows, hands
+- **IMPROVED**: More natural neck and arm anatomy
+- **IMPROVED**: Character responds to clicks with different emotions
+
+### UI & Design
+- **NEW**: Animated gradient background (shifts smoothly)
+- **NEW**: Gradient text with flowing animation
+- **NEW**: Gradient buttons and message bubbles
+- **NEW**: Text-to-speech with improved voice quality
+- **NEW**: Voice input functionality for hands-free chat
+- **NEW**: Glassmorphism effects on cards
+
+### AI & Chat
+- **FIXED**: AI no longer repeats greetings in every message
+- **FIXED**: AI responses without emojis (cleaner, more professional)
+- **IMPROVED**: TTS voice selection for better audio quality
+
+### Production Deployment
+- **NEW**: Configured for Replit Autoscale deployment
+- **NEW**: Production build scripts (Vite + esbuild)
+- **NEW**: DEPLOYMENT.md with full deployment instructions
+- **READY**: Can be deployed with one click in Replit
+
+### Previous Updates
 - Project adapted for Дворец школьников "Digital Urpaq" Petropavlovsk
-- **NEW**: Modern gradient-based design with glassmorphism effects
-- **NEW**: Enhanced visual hierarchy with gradient text and floating animations
-- **NEW**: Text-to-speech functionality with child-friendly voice pitch for AI responses
-- **NEW**: Voice input functionality for hands-free interaction with the assistant
-- **NEW**: Improved club cards with enrollment progress bars and status badges
-- **NEW**: Animated UI elements (floating character, fade-in transitions, hover effects)
-- **NEW**: Comprehensive facility information system with 15+ detailed classrooms
-- **NEW**: AI agent knows about all facilities, equipment, and room locations
-- **NEW**: Full AI chat feature with topic-focused conversation
-- **NEW**: Chat assistant only discusses Digital Urpaq-related topics
-- **NEW**: Redesigned assistant character as friendly human teacher with animations
-- **UPDATED**: Location to correct address (V438+J5W, ул. Таштинова, Петропавловск 150000)
-- **UPDATED**: Google Maps integration with correct coordinates (54.8537°N, 69.1458°E)
-- **UPDATED**: Header with glassmorphism effect and gradient branding
-- **UPDATED**: All club data with actual programs from Digital Urpaq
-- **UPDATED**: Contact information (Приемная: +7 (7152) 34-02-40, Ресепшн: +7 (7152) 50-17-03)
-- **FIXED**: Chat message duplication issue and error handling
-- Added all 7 main directions of education
+- Full AI chat feature focused on Digital Urpaq topics
+- Comprehensive facility information (15+ classrooms)
+- Multi-language support (en, kz, ru)
+- Location: V438+J5W, ул. Таштинова, Петропавловск 150000
+- Contact: Приемная: +7 (7152) 34-02-40, Ресепшн: +7 (7152) 50-17-03
+- All 7 main directions of education
 - Over 20 actual clubs from Digital Urpaq programs
-- Configured for Replit environment with proper host settings
-- Set up Google Gemini API integration
-- Configured Vite dev server to allow all hosts for iframe proxy
-- Installed all npm dependencies
 
 ## Known Limitations
 - Uses ReactDOM.render (React 17 API) through Preact compat - shows deprecation warning but works correctly
