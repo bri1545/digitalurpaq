@@ -73,8 +73,9 @@ An interactive web application for Дворец школьников "Digital Ur
 - **Frontend**: Preact (through React compat layer) + Vite
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **Backend**: Express.js + TypeScript
-- **AI Integration**: Google Gemini API
-- **Data Storage**: In-memory storage (MemStorage) - can be upgraded to PostgreSQL
+- **Database**: PostgreSQL via Neon (Drizzle ORM)
+- **AI Integration**: Google Gemini API (gemini-2.5-pro, gemini-2.5-flash)
+- **Data Storage**: PostgreSQL with Drizzle ORM (production-ready)
 - **Internationalization**: i18next
 - **State Management**: TanStack Query (React Query v5)
 
@@ -160,9 +161,17 @@ shared/
 - `POST /api/reminders/:id/sent` - Mark reminder as sent
 
 ## Environment Variables
-- `GEMINI_API_KEY` - Google Gemini API key (required for AI quiz features)
-- `DATABASE_URL` - PostgreSQL connection string (available for future database migration)
+- `GEMINI_API_KEY` - Google Gemini API key (required for AI quiz and chat features)
+- `DATABASE_URL` - PostgreSQL connection string (configured and active)
 - `NODE_ENV` - Environment (development/production)
+
+## Setup Instructions
+1. **Install Dependencies**: `npm install`
+2. **Database Migration**: `npm run db:push` (already completed)
+3. **Seed Database**: `tsx server/seed.ts` (already completed with 5 sample clubs)
+4. **Start Development**: `npm run dev` (runs on port 5000)
+5. **Build for Production**: `npm run build`
+6. **Start Production**: `npm run start`
 
 ## Data Models
 
