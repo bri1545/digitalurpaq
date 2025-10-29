@@ -4,10 +4,11 @@ import { useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Bot, User, Volume2, VolumeX, Mic, MicOff } from "lucide-react";
+import { Send, User, Volume2, VolumeX, Mic, MicOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { HumanCharacter } from "@/components/HumanCharacter";
 
 interface Message {
   role: "user" | "assistant";
@@ -28,7 +29,7 @@ export default function Chat() {
     }
   ]);
   const [input, setInput] = useState("");
-  const [assistantEmotion, setAssistantEmotion] = useState<"happy" | "thinking" | "excited" | "wink">("happy");
+  const [assistantEmotion, setAssistantEmotion] = useState<"normal" | "thinking" | "excited" | "happy">("normal");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechEnabled, setSpeechEnabled] = useState(true);
@@ -65,10 +66,16 @@ export default function Chat() {
         { role: "assistant", content: data.response.message }
       ]);
       setAssistantEmotion("excited");
-      setTimeout(() => setAssistantEmotion("happy"), 2000);
+      
+      // Auto-speak if enabled
+      if (speechEnabled) {
+        speakText(data.response.message);
+      }
+      
+      setTimeout(() => setAssistantEmotion("normal"), 2000);
     },
     onError: (error: Error) => {
-      setAssistantEmotion("happy");
+      setAssistantEmotion("normal");
       console.error("Chat error:", error);
       // Show error to user
       setMessages(prev => [
@@ -85,15 +92,37 @@ export default function Chat() {
     }
   });
 
-  // Text-to-Speech functionality
+  // Text-to-Speech functionality with improved voice quality
   const speakText = (text: string) => {
-    if (!speechEnabled || isSpeaking) return;
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+    }
     
     const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Set language
     utterance.lang = i18n.language === "kz" ? "kk-KZ" : i18n.language === "ru" ? "ru-RU" : "en-US";
-    utterance.rate = 0.9;
-    utterance.pitch = 1.2; // Slightly higher pitch for a friendly voice
+    
+    // Improved voice settings for better quality
+    utterance.rate = 0.95;  // Slightly slower for clarity
+    utterance.pitch = 1.1;  // Natural, friendly pitch
     utterance.volume = 1.0;
+    
+    // Try to use a better quality voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(voice => {
+      if (i18n.language === "ru") {
+        return voice.lang.startsWith("ru") && (voice.name.includes("Google") || voice.name.includes("Microsoft"));
+      } else if (i18n.language === "kz") {
+        return voice.lang.startsWith("kk");
+      } else {
+        return voice.lang.startsWith("en") && (voice.name.includes("Google") || voice.name.includes("Microsoft"));
+      }
+    });
+    
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
     
     utterance.onstart = () => {
       setIsSpeaking(true);
@@ -103,11 +132,12 @@ export default function Chat() {
     utterance.onend = () => {
       setIsSpeaking(false);
       setAssistantEmotion("happy");
+      setTimeout(() => setAssistantEmotion("normal"), 1000);
     };
     
     utterance.onerror = () => {
       setIsSpeaking(false);
-      setAssistantEmotion("happy");
+      setAssistantEmotion("normal");
     };
     
     window.speechSynthesis.speak(utterance);
@@ -116,7 +146,7 @@ export default function Chat() {
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
-    setAssistantEmotion("happy");
+    setAssistantEmotion("normal");
   };
   
   // Voice recognition functionality
@@ -141,7 +171,7 @@ export default function Chat() {
     
     recognition.onstart = () => {
       setIsListening(true);
-      setAssistantEmotion("wink");
+      setAssistantEmotion("happy");
       toast({
         title: i18n.language === "ru" ? "Слушаю..." : "Listening...",
         description: i18n.language === "ru" 
@@ -154,12 +184,12 @@ export default function Chat() {
       const transcript = event.results[0][0].transcript;
       setInput(transcript);
       setIsListening(false);
-      setAssistantEmotion("happy");
+      setAssistantEmotion("normal");
     };
     
     recognition.onerror = (event: any) => {
       setIsListening(false);
-      setAssistantEmotion("happy");
+      setAssistantEmotion("normal");
       toast({
         title: i18n.language === "ru" ? "Ошибка" : "Error",
         description: i18n.language === "ru" 
@@ -171,7 +201,7 @@ export default function Chat() {
     
     recognition.onend = () => {
       setIsListening(false);
-      setAssistantEmotion("happy");
+      setAssistantEmotion("normal");
     };
     
     recognitionRef.current = recognition;
@@ -183,7 +213,7 @@ export default function Chat() {
       recognitionRef.current.stop();
     }
     setIsListening(false);
-    setAssistantEmotion("happy");
+    setAssistantEmotion("normal");
   };
 
   const scrollToBottom = () => {
@@ -212,158 +242,33 @@ export default function Chat() {
 
   // Handle clicking on assistant character
   const handleAssistantClick = () => {
-    const emotions: Array<"happy" | "thinking" | "excited" | "wink"> = ["happy", "thinking", "excited", "wink"];
+    const emotions: Array<"normal" | "thinking" | "excited" | "happy"> = ["thinking", "excited", "happy"];
     const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)];
     setAssistantEmotion(randomEmotion);
-    setTimeout(() => setAssistantEmotion("happy"), 2000);
-  };
-
-  // Animated assistant character component
-  const AnimatedAssistant = ({ emotion }: { emotion: string }) => {
-    const getMouthPath = () => {
-      const emotionState = emotion || "happy";
-      switch (emotionState) {
-        case "happy":
-          return "M 100 100 Q 120 112 140 100";
-        case "thinking":
-          return "M 105 102 L 135 102";
-        case "excited":
-          return "M 95 95 Q 120 118 145 95";
-        case "wink":
-          return "M 105 102 Q 120 108 135 102";
-        default:
-          return "M 100 100 Q 120 112 140 100";
-      }
-    };
-
-    return (
-      <motion.div
-        whileHover={{ scale: 1.05, rotate: [0, -2, 2, 0] }}
-        whileTap={{ scale: 0.95 }}
-        onClick={handleAssistantClick}
-        className="cursor-pointer"
-        animate={emotion === "thinking" ? { rotate: [0, -3, 3, 0] } : {}}
-        transition={{ duration: 1, repeat: emotion === "thinking" ? Infinity : 0 }}
-      >
-        <svg
-          width="140"
-          height="160"
-          viewBox="0 0 240 280"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="drop-shadow-2xl"
-        >
-          {/* Head */}
-          <ellipse cx="120" cy="80" rx="45" ry="50" fill="#FFE0BD" />
-          
-          {/* Hair */}
-          <path d="M 75 60 Q 75 30 95 35 Q 105 25 120 25 Q 135 25 145 35 Q 165 30 165 60 Z" fill="#8B4513" />
-          <circle cx="90" cy="50" r="12" fill="#8B4513" />
-          <circle cx="150" cy="50" r="12" fill="#8B4513" />
-          
-          {/* Eyes */}
-          <g>
-            <ellipse cx="105" cy="75" rx="8" ry={emotion === "wink" ? "2" : "10"} fill="white" />
-            <circle cx="107" cy="76" r={emotion === "wink" ? "0" : "5"} fill="#2C3E50" />
-            <circle cx="108" cy="74" r={emotion === "wink" ? "0" : "2"} fill="white" />
-          </g>
-          <g>
-            <ellipse cx="135" cy="75" rx="8" ry="10" fill="white" />
-            <circle cx="137" cy="76" r="5" fill="#2C3E50" />
-            <circle cx="138" cy="74" r="2" fill="white" />
-          </g>
-          
-          {/* Eyebrows */}
-          <path 
-            d={emotion === "excited" ? "M 95 62 Q 100 58 110 60" : "M 95 65 Q 100 62 110 64"} 
-            stroke="#8B4513" 
-            strokeWidth="3" 
-            strokeLinecap="round" 
-            fill="none" 
-          />
-          <path 
-            d={emotion === "excited" ? "M 130 60 Q 140 58 145 62" : "M 130 64 Q 140 62 145 65"} 
-            stroke="#8B4513" 
-            strokeWidth="3" 
-            strokeLinecap="round" 
-            fill="none" 
-          />
-          
-          {/* Nose */}
-          <ellipse cx="120" cy="88" rx="6" ry="8" fill="#FFD4A3" />
-          
-          {/* Smile */}
-          <motion.path
-            d={getMouthPath()}
-            stroke="#E74C3C"
-            strokeWidth="4"
-            strokeLinecap="round"
-            fill="none"
-            animate={{ d: getMouthPath() }}
-            transition={{ duration: 0.3 }}
-          />
-          
-          {/* Rosy cheeks */}
-          <circle cx="85" cy="90" r="10" fill="#FFB6C1" opacity="0.5" />
-          <circle cx="155" cy="90" r="10" fill="#FFB6C1" opacity="0.5" />
-          
-          {/* Neck */}
-          <rect x="105" y="120" width="30" height="15" fill="#FFE0BD" />
-          
-          {/* Body - T-shirt */}
-          <path d="M 70 135 L 85 145 L 85 220 L 155 220 L 155 145 L 170 135 L 165 155 L 155 155 L 155 240 L 85 240 L 85 155 L 75 155 Z" fill="#42A5F5" />
-          
-          {/* Collar */}
-          <path d="M 105 135 L 105 145 L 120 150 L 135 145 L 135 135" fill="#1976D2" />
-          
-          {/* Arms */}
-          <motion.g
-            animate={emotion === "excited" ? { rotate: [-10, 10, -10] } : {}}
-            transition={{ duration: 0.5, repeat: emotion === "excited" ? 3 : 0 }}
-            style={{ transformOrigin: "65px 160px" }}
-          >
-            <ellipse cx="65" cy="180" rx="18" ry="50" fill="#FFE0BD" transform="rotate(-10 65 180)" />
-            <path d="M 55 160 Q 45 165 50 175 L 65 170" fill="#42A5F5" />
-          </motion.g>
-          
-          <ellipse cx="175" cy="180" rx="18" ry="50" fill="#FFE0BD" transform="rotate(10 175 180)" />
-          <path d="M 185 160 Q 195 165 190 175 L 175 170" fill="#42A5F5" />
-          
-          {/* Hand holding tablet */}
-          <rect x="90" y="200" width="60" height="45" rx="5" fill="#34495E" />
-          <rect x="95" y="205" width="50" height="35" rx="2" fill="#3498DB" />
-          
-          {/* Tablet screen details */}
-          <motion.circle 
-            cx="120" 
-            cy="222" 
-            r="8" 
-            fill="#2ECC71"
-            animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          <text x="120" y="227" fontSize="10" fill="white" textAnchor="middle">★</text>
-        </svg>
-      </motion.div>
-    );
+    setTimeout(() => setAssistantEmotion("normal"), 2000);
   };
 
   return (
-    <div className="min-h-screen bg-background py-8">
+    <div className="min-h-screen py-8 relative z-10">
       <div className="max-w-4xl mx-auto px-4 space-y-4">
-        <div className="text-center space-y-2 mb-6">
+        <div className="text-center space-y-4 mb-6">
           <div className="flex justify-center mb-4">
-            <AnimatedAssistant emotion={assistantEmotion} />
+            <HumanCharacter 
+              size="medium" 
+              emotion={assistantEmotion}
+              animated={true}
+              onClick={handleAssistantClick}
+            />
           </div>
-          <h1 className="text-4xl font-bold text-foreground" data-testid="text-chat-title">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent" data-testid="text-chat-title">
             {t("chatWithAssistant")}
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-xl text-gray-700 font-medium">
             {t("askAboutDigitalurpaq")}
           </p>
         </div>
 
-        <Card className="h-[600px] flex flex-col" data-testid="chat-container">
+        <Card className="h-[600px] flex flex-col shadow-2xl border-2 border-purple-100 bg-white/90 backdrop-blur-sm" data-testid="chat-container">
           {/* Messages Container */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.map((message, index) => (
@@ -375,21 +280,28 @@ export default function Chat() {
                 data-testid={`chat-message-${index}`}
               >
                 {message.role === "assistant" && (
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-5 h-5 text-primary" />
+                  <div className="flex-shrink-0">
+                    <HumanCharacter 
+                      size="small" 
+                      emotion={index === messages.length - 1 && !chatMutation.isPending ? assistantEmotion : "normal"}
+                      animated={false}
+                    />
                   </div>
                 )}
                 
                 <div className="flex flex-col gap-2">
-                  <div
-                    className={`max-w-[80%] rounded-lg p-4 ${
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className={`max-w-[80%] rounded-2xl p-4 shadow-md ${
                       message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                        : "bg-gradient-to-r from-gray-50 to-purple-50 text-gray-800 border border-purple-100"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
-                  </div>
+                    <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  </motion.div>
                   
                   {message.role === "assistant" && (
                     <div className="flex gap-1">
@@ -397,14 +309,14 @@ export default function Chat() {
                         variant="ghost"
                         size="sm"
                         onClick={() => speakText(message.content)}
-                        disabled={isSpeaking || !speechEnabled}
-                        className="h-8"
+                        disabled={isSpeaking}
+                        className="h-8 hover:bg-purple-100"
                         title={i18n.language === "ru" ? "Озвучить" : "Speak"}
                       >
                         {isSpeaking ? (
-                          <VolumeX className="w-4 h-4" />
+                          <VolumeX className="w-4 h-4 text-purple-600" />
                         ) : (
-                          <Volume2 className="w-4 h-4" />
+                          <Volume2 className="w-4 h-4 text-purple-600" />
                         )}
                       </Button>
                     </div>
@@ -412,8 +324,8 @@ export default function Chat() {
                 </div>
 
                 {message.role === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                    <User className="w-5 h-5 text-primary-foreground" />
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <User className="w-5 h-5 text-white" />
                   </div>
                 )}
               </div>
@@ -421,14 +333,30 @@ export default function Chat() {
             
             {chatMutation.isPending && (
               <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-5 h-5 text-primary" />
+                <div className="flex-shrink-0">
+                  <HumanCharacter 
+                    size="small" 
+                    emotion="thinking"
+                    animated={true}
+                  />
                 </div>
-                <div className="bg-muted rounded-lg p-4">
+                <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-2xl p-4 border border-purple-100">
                   <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <motion.div 
+                      className="w-2 h-2 rounded-full bg-purple-500"
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+                    />
+                    <motion.div 
+                      className="w-2 h-2 rounded-full bg-purple-500"
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                    />
+                    <motion.div 
+                      className="w-2 h-2 rounded-full bg-purple-500"
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+                    />
                   </div>
                 </div>
               </div>
@@ -438,7 +366,7 @@ export default function Chat() {
           </div>
 
           {/* Input Form */}
-          <div className="border-t p-4">
+          <div className="border-t border-purple-100 p-4 bg-gradient-to-r from-purple-50 to-pink-50">
             <form onSubmit={handleSubmit} className="flex gap-2">
               <Button
                 type="button"
@@ -446,7 +374,7 @@ export default function Chat() {
                 size="icon"
                 onClick={isListening ? stopListening : startListening}
                 disabled={chatMutation.isPending}
-                className="self-end shrink-0"
+                className="self-end shrink-0 border-2 border-purple-200"
                 title={i18n.language === "ru" ? "Голосовой ввод" : "Voice input"}
               >
                 {isListening ? (
@@ -465,7 +393,7 @@ export default function Chat() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={t("typeYourMessage") || "Type your message..."}
-                className="flex-1 resize-none"
+                className="flex-1 resize-none border-2 border-purple-200 focus:border-purple-400 bg-white"
                 rows={2}
                 disabled={chatMutation.isPending || isListening}
                 data-testid="chat-input"
@@ -473,23 +401,23 @@ export default function Chat() {
               <Button
                 type="submit"
                 disabled={!input.trim() || chatMutation.isPending}
-                className="self-end shrink-0"
+                className="self-end shrink-0 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                 data-testid="button-send-message"
               >
                 <Send className="w-4 h-4" />
               </Button>
             </form>
             
-            <div className="mt-2 flex justify-between items-center text-sm text-muted-foreground">
+            <div className="mt-3 flex justify-between items-center text-sm text-gray-600">
               <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-purple-600 transition-colors">
                   <input
                     type="checkbox"
                     checked={speechEnabled}
                     onChange={(e) => setSpeechEnabled(e.target.checked)}
-                    className="w-4 h-4"
+                    className="w-4 h-4 accent-purple-600"
                   />
-                  <span>
+                  <span className="font-medium">
                     {i18n.language === "ru" ? "Автоозвучка ответов" : "Auto-speak responses"}
                   </span>
                 </label>
@@ -499,7 +427,7 @@ export default function Chat() {
                   variant="ghost"
                   size="sm"
                   onClick={stopSpeaking}
-                  className="h-6"
+                  className="h-6 text-purple-600 hover:text-purple-700 hover:bg-purple-100"
                 >
                   {i18n.language === "ru" ? "Остановить" : "Stop"} <VolumeX className="w-3 h-3 ml-1" />
                 </Button>

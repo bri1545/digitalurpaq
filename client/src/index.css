@@ -221,9 +221,26 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
+    background: linear-gradient(135deg, 
+      #e0f2fe 0%,
+      #ddd6fe 25%,
+      #fce7f3 50%,
+      #fed7aa 75%,
+      #fef3c7 100%
+    );
     min-height: 100vh;
     background-attachment: fixed;
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease infinite;
+  }
+  
+  @keyframes gradientShift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
   }
 }
 
@@ -246,10 +263,26 @@
   }
   
   .gradient-text {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--violet)) 100%);
+    background: linear-gradient(135deg, 
+      #3b82f6 0%,
+      #8b5cf6 33%,
+      #ec4899 66%,
+      #f97316 100%
+    );
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+    animation: gradientFlow 5s linear infinite;
+  }
+  
+  @keyframes gradientFlow {
+    0% {
+      background-position: 0% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
   }
   
   .floating-animation {
