@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Симулятор - Рабочая версия</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #000;
+        }
+        canvas { display: block; }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0,0,0,0.85);
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 14px;
+            z-index: 100;
+            pointer-events: none;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.6);
+            border: 2px solid rgba(100,100,255,0.3);
+        }
+        #cigaretteInfo {
+            position: absolute;
+            top: 300px;
+            left: 20px;
+            color: white;
+            background: rgba(139,0,0,0.9);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            z-index: 100;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 5px 15px rgba(255,0,0,0.4);
+        }
+        #jobInfo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(0,100,200,0.9);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            z-index: 100;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,100,255,0.4);
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background: rgba(0,0,0,0.85);
+            padding: 15px 30px;
+            border-radius: 12px;
+            text-align: center;
+            pointer-events: none;
+            max-width: 90%;
+            font-size: 12px;
+            border: 2px solid rgba(100,255,100,0.3);
+        }
+        #startBtn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 25px 50px;
+            font-size: 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 200;
+            box-shadow: 0 15px 40px rgba(102,126,234,0.5);
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        #startBtn:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 20px 50px rgba(102,126,234,0.7);
+        }
+        #leaderboard {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 14px;
+            z-index: 100;
+            pointer-events: none;
+            box-shadow: 0 5px 25px rgba(255,215,0,0.4);
+            border: 2px solid rgba(255,215,0,0.5);
+            min-width: 200px;
+            display: none;
+        }
+        .leaderboard-entry {
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .leaderboard-entry.current {
+            background: rgba(255,215,0,0.3);
+            border: 1px solid gold;
+        }
+        .stat { margin: 8px 0; }
+        .bar {
+            width: 220px;
+            height: 22px;
+            background: rgba(30,30,30,0.9);
+            border-radius: 11px;
+            overflow: hidden;
+            margin-top: 6px;
+            border: 2px solid rgba(255,255,255,0.15);
+        }
+        .bar-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .health { background: linear-gradient(90deg, #4CAF50, #81C784); }
+        .stress { background: linear-gradient(90deg, #FF9800, #FF5722); }
+        .money { background: linear-gradient(90deg, #2196F3, #03A9F4); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .tripEffect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            animation: tripPulse 2s infinite;
+        }
+        @keyframes tripPulse {
+            0%, 100% { background: radial-gradient(circle, rgba(255,0,255,0.2), rgba(0,255,255,0.15)); }
+            50% { background: radial-gradient(circle, rgba(0,255,255,0.25), rgba(255,0,255,0.1)); }
+        }
+        .badTripEffect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            animation: badTripPulse 1s infinite;
+        }
+        @keyframes badTripPulse {
+            0%, 100% { background: radial-gradient(circle, rgba(139,0,0,0.5), rgba(0,0,0,0.8)); }
+            50% { background: radial-gradient(circle, rgba(0,0,0,0.9), rgba(100,0,0,0.6)); }
+        }
+    </style>
+</head>
+<body>
+    <button id="startBtn">🎮 НАЧАТЬ ИГРУ</button>
+    
+    <div id="ui" style="display: none;">
+        <div class="stat">
+            💚 <strong>Здоровье:</strong> <span id="health">100</span>%
+            <div class="bar"><div class="bar-fill health" id="healthBar" style="width: 100%"></div></div>
+        </div>
+        <div class="stat">
+            😰 <strong>Стресс:</strong> <span id="stress">0</span>%
+            <div class="bar"><div class="bar-fill stress" id="stressBar" style="width: 0%"></div></div>
+        </div>
+        <div class="stat">
+            💰 <strong>Деньги:</strong> <span id="money">1000</span> ₸
+            <div class="bar"><div class="bar-fill money" id="moneyBar" style="width: 100%"></div></div>
+        </div>
+        <div class="stat">⏰ <strong>День:</strong> <span id="day">1</span></div>
+        <div class="stat">🍄 <strong>Грибы:</strong> <span id="mushrooms">0</span> (<span id="mushroomsEaten">0</span> съедено)</div>
+        <div class="stat">🍬 <strong>Конфеты:</strong> <span id="candies">0</span></div>
+        <div class="stat">📱 <strong>Спец. конфеты:</strong> <span id="specialCandies">0</span></div>
+    </div>
+    
+    <div id="leaderboard">
+        <h3 style="margin-top:0; color: gold; text-align: center;">🏆 ТОП-10</h3>
+        <div id="leaderboardList"></div>
+    </div>
+    
+    <div id="cigaretteInfo">
+        🚬 <strong>Курю...</strong><br>
+        Затяжек: <span id="puffs">0</span>/<span id="maxPuffs">0</span><br>
+        Тип: <span id="cigType">-</span>
+    </div>
+    
+    <div id="jobInfo">
+        📦 <strong>Работа курьером</strong><br>
+        Разложено: <span id="candiesPlaced">0</span>/10
+    </div>
+    
+    <div id="controls" style="display: none;">
+        <strong>🎮 Управление:</strong><br>
+        <strong>WASD</strong> - Движение | <strong>Мышь</strong> - Камера | <strong>E</strong> - Взять<br>
+        <strong>F</strong> - Съесть | <strong>Пробел</strong> - Затяжка | <strong>R</strong> - Сесть<br>
+        <strong>1,2,3</strong> - Сигареты | <strong>4</strong> - Работа | <strong>5</strong> - Спец. конфета
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, character;
+        let keys = {};
+        let health = 100, stress = 0, money = 1000, day = 1;
+        let mushrooms = 0, candies = 0, specialCandies = 0, mushroomsEaten = 0;
+        let gameStarted = false;
+        
+        let cigarette = null, smoking = false, currentPuffs = 0, maxPuffs = 0, cigaretteType = '';
+        let smokeParticles = [];
+        
+        let isTripping = false, isBadTrip = false, tripType = '';
+        let tripGnomes = [], tripBunnies = [], tripClouds = [];
+        let ghosts = [], monster = null, moneyOnGround = [];
+        
+        let hasJob = false, candiesPlaced = 0, placedCandies = [];
+        let police = null, policeLights = [], arrested = false, policeChasing = false;
+        
+        let courier = null, courierDelivering = false, deliveryPoint = null;
+        let sitting = false;
+        let cameraRotationX = 0, cameraRotationY = 0.5;
+        
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        let birdSoundInterval = null, sirenInterval = null;
+        
+        function getCigarettePrice() {
+            return Math.floor(30 + (day - 1) * 5);
+        }
+        
+        function getDailyIncome() {
+            return Math.max(50, 200 - (day - 1) * 10);
+        }
+        
+        function getJobReward() {
+            return Math.max(200, 500 - (day - 1) * 20);
+        }
+        
+        function getBadTripChance() {
+            return Math.min(0.8, 0.33 + (day - 1) * 0.05);
+        }
+        
+        async function loadLeaderboard() {
+            try {
+                const result = await window.storage.get('leaderboard-data');
+                return result ? JSON.parse(result.value) : [];
+            } catch {
+                return [];
+            }
+        }
+        
+        async function saveToLeaderboard(days) {
+            try {
+                let leaderboard = await loadLeaderboard();
+                leaderboard.push({ days: days, date: Date.now() });
+                leaderboard.sort((a, b) => b.days - a.days);
+                leaderboard = leaderboard.slice(0, 10);
+                await window.storage.set('leaderboard-data', JSON.stringify(leaderboard));
+                await updateLeaderboardDisplay();
+            } catch (e) {
+                console.error('Ошибка сохранения:', e);
+            }
+        }
+        
+        async function updateLeaderboardDisplay() {
+            const leaderboard = await loadLeaderboard();
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = '';
+            
+            leaderboard.forEach((entry, i) => {
+                const div = document.createElement('div');
+                div.className = 'leaderboard-entry';
+                if(entry.days === day && Math.abs(Date.now() - entry.date) < 5000) {
+                    div.classList.add('current');
+                }
+                div.innerHTML = `<span>${i + 1}. День ${entry.days}</span><span>🏆</span>`;
+                list.appendChild(div);
+            });
+            
+            document.getElementById('leaderboard').style.display = 'block';
+        }
+        
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.Fog(0x87CEEB, 0, 200);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.domElement);
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+            scene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+            dirLight.position.set(50, 60, 30);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+            
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(120, 120),
+                new THREE.MeshStandardMaterial({ color: 0x2d5016 })
+            );
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            
+            createCharacter();
+            createShop(15, 0, -10);
+            createPolice();
+            
+            for(let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                createBench(Math.cos(angle) * 20, 0, Math.sin(angle) * 20, angle);
+            }
+            
+            for(let i = 0; i < 25; i++) {
+                const x = Math.random() * 100 - 50;
+                const z = Math.random() * 100 - 50;
+                if(Math.abs(x) > 18 || Math.abs(z) > 18) {
+                    createTree(x, 0, z);
+                    if(Math.random() < 0.35) createMushroom(x + Math.random() * 4 - 2, 0, z + Math.random() * 4 - 2);
+                }
+            }
+            
+            setupControls();
+            animate();
+        }
+        
+        function createCharacter() {
+            character = new THREE.Group();
+            
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2c5aa0 });
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.6, 0.6), bodyMat);
+            body.position.y = 1.6;
+            body.castShadow = true;
+            character.add(body);
+            
+            const headMat = new THREE.MeshStandardMaterial({ color: 0xffdbac });
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), headMat);
+            head.position.y = 2.7;
+            head.castShadow = true;
+            character.add(head);
+            
+            const eyeMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+            const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.05), eyeMat);
+            eyeL.position.set(-0.15, 2.75, 0.31);
+            character.add(eyeL);
+            const eyeR = eyeL.clone();
+            eyeR.position.set(0.15, 2.75, 0.31);
+            character.add(eyeR);
+            
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50 });
+            const legL = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.8, 0.35), legMat);
+            legL.position.set(-0.3, 0.4, 0);
+            legL.castShadow = true;
+            character.add(legL);
+            const legR = legL.clone();
+            legR.position.set(0.3, 0.4, 0);
+            character.add(legR);
+            
+            scene.add(character);
+        }
+        
+        function createShop(x, y, z) {
+            const shop = new THREE.Group();
+            
+            const walls = new THREE.Mesh(
+                new THREE.BoxGeometry(10, 6, 8),
+                new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+            );
+            walls.position.y = 3;
+            walls.castShadow = true;
+            shop.add(walls);
+            
+            const roof = new THREE.Mesh(
+                new THREE.ConeGeometry(7, 3, 4),
+                new THREE.MeshStandardMaterial({ color: 0xDC143C })
+            );
+            roof.position.y = 7.5;
+            roof.rotation.y = Math.PI / 4;
+            shop.add(roof);
+            
+            shop.position.set(x, y, z);
+            shop.userData = { type: 'shop' };
+            scene.add(shop);
+        }
+        
+        function createBench(x, y, z, rotation) {
+            const bench = new THREE.Group();
+            const wood = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+            
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(2, 0.15, 0.6), wood);
+            seat.position.y = 0.5;
+            seat.castShadow = true;
+            bench.add(seat);
+            
+            const back = new THREE.Mesh(new THREE.BoxGeometry(2, 0.8, 0.1), wood);
+            back.position.set(0, 0.9, -0.25);
+            bench.add(back);
+            
+            bench.position.set(x, y, z);
+            bench.rotation.y = rotation;
+            bench.userData = { type: 'bench' };
+            scene.add(bench);
+        }
+        
+        function createTree(x, y, z) {
+            const tree = new THREE.Group();
+            
+            const trunk = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.35, 0.45, 4, 8),
+                new THREE.MeshStandardMaterial({ color: 0x654321 })
+            );
+            trunk.position.y = 2;
+            trunk.castShadow = true;
+            tree.add(trunk);
+            
+            const leaves = new THREE.Mesh(
+                new THREE.SphereGeometry(2.5, 12, 12),
+                new THREE.MeshStandardMaterial({ color: 0x228B22 })
+            );
+            leaves.position.y = 5;
+            leaves.castShadow = true;
+            tree.add(leaves);
+            
+            tree.position.set(x, y, z);
+            tree.userData = { type: 'tree' };
+            scene.add(tree);
+        }
+        
+        function createMushroom(x, y, z) {
+            const mushroom = new THREE.Group();
+            
+            const stem = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.12, 0.14, 0.35, 8),
+                new THREE.MeshStandardMaterial({ color: 0xFFFACD })
+            );
+            stem.position.y = 0.175;
+            mushroom.add(stem);
+            
+            const cap = new THREE.Mesh(
+                new THREE.SphereGeometry(0.28, 12, 12),
+                new THREE.MeshStandardMaterial({ color: 0xFF4500 })
+            );
+            cap.position.y = 0.4;
+            cap.scale.y = 0.65;
+            mushroom.add(cap);
+            
+            mushroom.position.set(x, y, z);
+            mushroom.userData = { type: 'mushroom' };
+            scene.add(mushroom);
+        }
+        
+        function createPolice() {
+            police = new THREE.Group();
+            
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(0.7, 1.3, 0.5),
+                new THREE.MeshStandardMaterial({ color: 0x000080 })
+            );
+            body.position.y = 0.65;
+            police.add(body);
+            
+            const head = new THREE.Mesh(
+                new THREE.SphereGeometry(0.3, 12, 12),
+                new THREE.MeshStandardMaterial({ color: 0xffdbac })
+            );
+            head.position.y = 1.5;
+            police.add(head);
+            
+            police.position.set(-40, 0, -40);
+            scene.add(police);
+        }
+        
+        function showMessage(text) {
+            const msg = document.createElement('div');
+            msg.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);color:white;padding:25px 45px;border-radius:15px;font-size:22px;z-index:1000;box-shadow:0 10px 40px rgba(0,0,0,0.5);text-align:center;border:2px solid rgba(100,200,255,0.5);`;
+            msg.textContent = text;
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 2500);
+        }
+        
+        function updateUI() {
+            document.getElementById('health').textContent = Math.round(health);
+            document.getElementById('stress').textContent = Math.round(stress);
+            document.getElementById('money').textContent = money;
+            document.getElementById('day').textContent = day;
+            document.getElementById('mushrooms').textContent = mushrooms;
+            document.getElementById('mushroomsEaten').textContent = mushroomsEaten;
+            document.getElementById('candies').textContent = candies;
+            document.getElementById('specialCandies').textContent = specialCandies;
+            
+            document.getElementById('healthBar').style.width = Math.max(0, health) + '%';
+            document.getElementById('stressBar').style.width = Math.min(100, stress) + '%';
+            document.getElementById('moneyBar').style.width = Math.min(100, money/15) + '%';
+        }
+        
+        function setupControls() {
+            document.getElementById('startBtn').addEventListener('click', () => {
+                gameStarted = true;
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('ui').style.display = 'block';
+                document.getElementById('controls').style.display = 'block';
+                document.getElementById('leaderboard').style.display = 'block';
+                audioCtx.resume();
+                updateLeaderboardDisplay();
+                showMessage('🎮 Игра началась!');
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                keys[e.key.toLowerCase()] = true;
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if(!gameStarted || document.pointerLockElement !== renderer.domElement) return;
+                const sensitivity = 0.002;
+                cameraRotationX += e.movementX * sensitivity;
+                cameraRotationY -= e.movementY * sensitivity;
+                cameraRotationY = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, cameraRotationY));
+            });
+            
+            renderer.domElement.addEventListener('click', () => {
+                if(gameStarted) renderer.domElement.requestPointerLock();
+            });
+            
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if(!gameStarted) {
+                renderer.render(scene, camera);
+                return;
+            }
+            
+            if(!sitting && !arrested) {
+                const speed = 0.2;
+                const forward = new THREE.Vector3(
+                    -Math.sin(cameraRotationX),
+                    0,
+                    -Math.cos(cameraRotationX)
+                );
+                const right = new THREE.Vector3(
+                    Math.cos(cameraRotationX),
+                    0,
+                    -Math.sin(cameraRotationX)
+                );
+                
+                const moveDir = new THREE.Vector3(0, 0, 0);
+                
+                if(keys['w']) moveDir.add(forward);
+                if(keys['s']) moveDir.sub(forward);
+                if(keys['d']) moveDir.add(right);
+                if(keys['a']) moveDir.sub(right);
+                
+                if(moveDir.length() > 0) {
+                    moveDir.normalize();
+                    character.position.add(moveDir.multiplyScalar(speed));
+                    character.position.x = Math.max(-55, Math.min(55, character.position.x));
+                    character.position.z = Math.max(-55, Math.min(55, character.position.z));
+                    
+                    character.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                }
+            }
+            
+            const camDist = 8;
+            const camHeight = 3;
+            camera.position.set(
+                character.position.x - Math.sin(cameraRotationX) * camDist * Math.cos(cameraRotationY),
+                character.position.y + camHeight + camDist * Math.sin(cameraRotationY),
+                character.position.z - Math.cos(cameraRotationX) * camDist * Math.cos(cameraRotationY)
+            );
+            camera.lookAt(character.position.x, character.position.y + 1.5, character.position.z);
+            
+            renderer.render(scene, camera);
+        }
+        
+        init();
+    </script>
+</body>
+</html>
