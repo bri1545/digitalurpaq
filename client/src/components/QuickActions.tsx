@@ -38,16 +38,20 @@ export function QuickActions() {
   ];
   
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4" data-testid="quick-actions-grid">
-      {actions.map((action) => (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6" data-testid="quick-actions-grid">
+      {actions.map((action, index) => (
         <Link key={action.link} href={action.link}>
-          <Card className="p-6 hover-elevate active-elevate-2 transition-all duration-200 hover:shadow-md cursor-pointer" data-testid={action.testId}>
+          <Card 
+            className="p-6 card-hover cursor-pointer glass-effect border-2 fade-in-up" 
+            data-testid={action.testId}
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
             <div className="flex flex-col items-center text-center gap-3">
-              <div className="p-4 bg-primary/10 rounded-full">
+              <div className="p-4 bg-gradient-to-br from-primary/20 to-violet-500/20 rounded-full shadow-md">
                 <action.icon className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-card-foreground mb-1">
+                <h3 className="font-bold text-card-foreground mb-1">
                   {action.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">

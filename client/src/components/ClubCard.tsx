@@ -22,29 +22,34 @@ export function ClubCard({ club, matchPercentage }: ClubCardProps) {
   const name = getLocalizedText(club.name, club.nameKz, club.nameRu);
   const description = getLocalizedText(club.description, club.descriptionKz, club.descriptionRu);
   
+  const enrollmentPercentage = (club.currentEnrollment / club.maxCapacity) * 100;
+  const isAlmostFull = enrollmentPercentage > 80;
+  
   return (
-    <Card className="overflow-hidden hover-elevate active-elevate-2 transition-all duration-200 hover:shadow-md" data-testid={`club-card-${club.id}`}>
+    <Card className="overflow-hidden card-hover glass-effect border-2" data-testid={`club-card-${club.id}`}>
       {club.imageUrl && (
-        <div className="aspect-video bg-muted overflow-hidden">
+        <div className="aspect-video bg-muted overflow-hidden relative">
           <img
             src={club.imageUrl}
             alt={name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
             data-testid={`club-image-${club.id}`}
           />
+          {matchPercentage !== undefined && (
+            <div className="absolute top-3 right-3">
+              <span className="badge-success shadow-lg" data-testid={`match-percentage-${club.id}`}>
+                ⭐ {matchPercentage}% {t("match") || "match"}
+              </span>
+            </div>
+          )}
         </div>
       )}
       
-      <div className="p-4 space-y-3">
+      <div className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-lg text-card-foreground" data-testid={`club-name-${club.id}`}>
+          <h3 className="font-bold text-xl text-card-foreground" data-testid={`club-name-${club.id}`}>
             {name}
           </h3>
-          {matchPercentage !== undefined && (
-            <Badge variant="secondary" data-testid={`match-percentage-${club.id}`}>
-              {t("matchPercentage", { percent: matchPercentage })}
-            </Badge>
-          )}
         </div>
         
         <p className="text-sm text-muted-foreground line-clamp-2" data-testid={`club-description-${club.id}`}>
@@ -52,20 +57,38 @@ export function ClubCard({ club, matchPercentage }: ClubCardProps) {
         </p>
         
         <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" data-testid={`club-category-${club.id}`}>{club.category}</Badge>
-          <Badge variant="outline" data-testid={`club-age-${club.id}`}>{club.ageGroup}</Badge>
-          <Badge variant="outline" data-testid={`club-level-${club.id}`}>{club.skillLevel}</Badge>
+          <span className="badge-info" data-testid={`club-category-${club.id}`}>{club.category}</span>
+          <span className="badge-info" data-testid={`club-age-${club.id}`}>{club.ageGroup}</span>
+          <span className="badge-info" data-testid={`club-level-${club.id}`}>{club.skillLevel}</span>
         </div>
         
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span data-testid={`club-capacity-${club.id}`}>
-            {club.currentEnrollment}/{club.maxCapacity} {t("enrolled")}
-          </span>
-          <span data-testid={`club-location-${club.id}`}>{club.location}</span>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium" data-testid={`club-capacity-${club.id}`}>
+              {club.currentEnrollment}/{club.maxCapacity} {t("enrolled")}
+            </span>
+            {isAlmostFull && (
+              <span className="badge-warning">{t("almostFull") || "Almost full!"}</span>
+            )}
+          </div>
+          
+          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div 
+              className={`h-full rounded-full transition-all ${
+                isAlmostFull ? 'bg-orange-500' : 'bg-primary'
+              }`}
+              style={{ width: `${enrollmentPercentage}%` }}
+            />
+          </div>
+          
+          <div className="text-sm text-muted-foreground flex items-center gap-1">
+            <span>📍</span>
+            <span data-testid={`club-location-${club.id}`}>{club.location}</span>
+          </div>
         </div>
         
         <Link href={`/clubs/${club.id}`}>
-          <Button className="w-full" data-testid={`button-club-details-${club.id}`}>
+          <Button className="w-full shadow-md hover:shadow-lg transition-all" data-testid={`button-club-details-${club.id}`}>
             {t("learnMore")}
           </Button>
         </Link>

@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { FACILITIES_INFO } from "./facilities";
 
 // Blueprint reference: javascript_gemini integration
 // Note that the newest Gemini model series is "gemini-2.5-flash" or "gemini-2.5-pro"
@@ -174,10 +175,18 @@ export async function chatWithAssistant(messages: ChatMessage[], language: strin
     ru: "Russian (Русский)"
   };
 
-  const systemPrompt = `You are a helpful AI assistant for Дворец школьников "Digital Urpaq" in Petropavlovsk, Kazakhstan (https://digitalurpaq.edu.kz).
+  const classroomDetails = Object.entries(FACILITIES_INFO.classrooms)
+    .map(([name, info]) => `
+${name} (${info.floor} этаж, вместимость ${info.capacity} человек):
+- Оборудование: ${info.equipment.slice(0, 3).join(", ")}${info.equipment.length > 3 ? ` и еще ${info.equipment.length - 3}...` : ''}
+- Кружки: ${info.subjects.join(", ")}
+- Особенности: ${info.features.slice(0, 2).join(", ")}`)
+    .join("\n");
+
+  const systemPrompt = `You are a friendly, cheerful AI assistant for children at Дворец школьников "Digital Urpaq" in Petropavlovsk, Kazakhstan (https://digitalurpaq.edu.kz). You speak to children in a warm, encouraging, and fun way!
 
 FACILITY INFORMATION:
-- Name: Дворец школьников "DIGITAL URPAQ"
+- Name: Дворец школьников "DIGITAL URPAQ" (Цифровой Урпақ)
 - Address: V438+J5W, ул. Таштинова, Петропавловск 150000
 - Coordinates: 54.8537°N, 69.1458°E
 - Phone: Приемная +7 (7152) 34-02-40, Ресепшн +7 (7152) 50-17-03
@@ -186,6 +195,18 @@ FACILITY INFORMATION:
 - Over 90 clubs across main directions, 80 are FREE
 - 15 modern laboratories with high-tech equipment
 - IT center for intellectual development of children and youth
+- Total capacity: 300 students
+- 3 floors with specialized classrooms
+
+DETAILED CLASSROOMS AND FACILITIES:
+${classroomDetails}
+
+COMMON AREAS:
+- Ресепшн (1 этаж): Регистрация, информация - телефон: +7 (7152) 50-17-03
+- Приемная (1 этаж): Администрация, запись на кружки - телефон: +7 (7152) 34-02-40
+- Библиотека (2 этаж): Книги, читальный зал, компьютеры (вместимость 30 человек)
+- Столовая (1 этаж): Горячие обеды, буфет (вместимость 50 человек)
+- Туалеты на каждом этаже
 
 MAIN DIRECTIONS:
 1. IT - ИНФОРМАЦИОННЫЕ ТЕХНОЛОГИИ

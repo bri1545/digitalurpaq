@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE - Light Blue & White Theme */
+/* LIGHT MODE - Modern Gradient Theme for Children */
 :root {
   --button-outline: rgba(66, 165, 245, .20);
   --badge-outline: rgba(66, 165, 245, .10);
@@ -14,6 +14,15 @@
   --elevate-1: rgba(66, 165, 245, .05);
   --elevate-2: rgba(66, 165, 245, .12);
 
+  /* Modern gradient background */
+  --gradient-start: 207 89% 97%;
+  --gradient-end: 30 80% 92%;
+  
+  /* Accent colors for interactive elements */
+  --coral: 14 100% 70%;
+  --lime: 84 90% 65%;
+  --violet: 260 85% 75%;
+  
   --background: 0 0% 100%;
 
   --foreground: 0 0% 13%;
@@ -211,7 +220,86 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased text-foreground;
+    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
+    min-height: 100vh;
+    background-attachment: fixed;
+  }
+}
+
+/* Modern UI Enhancements */
+@layer components {
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+  
+  .card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--violet)) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .floating-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+  
+  .pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .badge-success {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    background: hsl(var(--lime));
+    color: hsl(120 100% 15%);
+  }
+  
+  .badge-info {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    background: hsl(var(--primary));
+    color: white;
+  }
+  
+  .badge-warning {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    background: hsl(var(--coral));
+    color: hsl(14 100% 15%);
   }
 }
 

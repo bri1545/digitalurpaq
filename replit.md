@@ -79,10 +79,14 @@ An interactive web application for Дворец школьников "Digital Ur
 - **State Management**: TanStack Query (React Query v5)
 
 ## Design System
-- **Theme**: Light blue (#E3F2FD, #BBDEFB) and white (#FFFFFF)
-- **Style**: Flat design with no gradients, clean and accessible
-- **Components**: shadcn/ui with custom light blue theme
-- **Icons**: Lucide React
+- **Theme**: Modern gradient background (sky blue to warm apricot) with vibrant accent colors
+- **Primary Colors**: Light blue (#42A5F5), Coral (#FF7961), Lime (#9CCC65), Violet (#BA68C8)
+- **Style**: Glassmorphism effects with gradient backgrounds, smooth animations, and depth
+- **Components**: shadcn/ui with enhanced styling, custom badges, and hover effects
+- **Effects**: Card hover animations, floating animations, fade-in transitions, glassmorphism headers
+- **Icons**: Lucide React with animated elements
+- **Badges**: Color-coded badges (success/info/warning) with rounded pill shapes
+- **Progress Indicators**: Visual enrollment progress bars on club cards
 
 ## Architecture
 
@@ -248,14 +252,23 @@ The application includes actual clubs from Дворец школьников "Di
 
 ## Recent Changes (October 2025)
 - Project adapted for Дворец школьников "Digital Urpaq" Petropavlovsk
-- **NEW**: Added full AI chat feature with topic-focused conversation
+- **NEW**: Modern gradient-based design with glassmorphism effects
+- **NEW**: Enhanced visual hierarchy with gradient text and floating animations
+- **NEW**: Text-to-speech functionality with child-friendly voice pitch for AI responses
+- **NEW**: Voice input functionality for hands-free interaction with the assistant
+- **NEW**: Improved club cards with enrollment progress bars and status badges
+- **NEW**: Animated UI elements (floating character, fade-in transitions, hover effects)
+- **NEW**: Comprehensive facility information system with 15+ detailed classrooms
+- **NEW**: AI agent knows about all facilities, equipment, and room locations
+- **NEW**: Full AI chat feature with topic-focused conversation
 - **NEW**: Chat assistant only discusses Digital Urpaq-related topics
-- **NEW**: Added animated assistant character with interactive emotions
+- **NEW**: Redesigned assistant character as friendly human teacher with animations
 - **UPDATED**: Location to correct address (V438+J5W, ул. Таштинова, Петропавловск 150000)
 - **UPDATED**: Google Maps integration with correct coordinates (54.8537°N, 69.1458°E)
-- **FIXED**: Chat message duplication issue and error handling
+- **UPDATED**: Header with glassmorphism effect and gradient branding
 - **UPDATED**: All club data with actual programs from Digital Urpaq
 - **UPDATED**: Contact information (Приемная: +7 (7152) 34-02-40, Ресепшн: +7 (7152) 50-17-03)
+- **FIXED**: Chat message duplication issue and error handling
 - Added all 7 main directions of education
 - Over 20 actual clubs from Digital Urpaq programs
 - Configured for Replit environment with proper host settings
