@@ -252,6 +252,18 @@ The application includes actual clubs from Дворец школьников "Di
 
 ## Recent Changes (October 2025)
 
+### Latest Updates (29.10.2025)
+- **NEW**: Real-time clock with date and time in header (top-right corner)
+  - Live updating seconds, HH:MM:SS format
+  - Date in DD.MM.YYYY format
+  - Glassmorphism design with clock icon
+  - Responsive (hidden on mobile, visible on desktop)
+- **NEW**: Docker support for server deployment
+  - Optimized multi-stage Dockerfile
+  - docker-compose.yml with PostgreSQL
+  - Complete DOCKER_DEPLOY.md deployment guide
+  - Ready for VPS/cloud deployment
+
 ### Character & Animation Updates
 - **NEW**: Animated human character with 10+ animation states:
   - Continuous floating motion
@@ -283,8 +295,10 @@ The application includes actual clubs from Дворец школьников "Di
 ### Production Deployment
 - **NEW**: Configured for Replit Autoscale deployment
 - **NEW**: Production build scripts (Vite + esbuild)
-- **NEW**: DEPLOYMENT.md with full deployment instructions
+- **NEW**: DEPLOYMENT.md with full Replit deployment instructions
+- **NEW**: DOCKER_DEPLOY.md for server/cloud deployment
 - **READY**: Can be deployed with one click in Replit
+- **READY**: Can be deployed to any Docker-compatible server
 
 ### Previous Updates
 - Project adapted for Дворец школьников "Digital Urpaq" Petropavlovsk
